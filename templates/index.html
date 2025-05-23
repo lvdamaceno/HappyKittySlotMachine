@@ -1,24 +1,22 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Caça-Níquel 7s</title>
-  <link rel="stylesheet" href="/static/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máquina Caça-Níquel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <h1>🎰 Caça-Níquel 7s 🎰</h1>
-  <div id="coin-counter">Moedas: {{ coins }}</div>
-  <div class="slots-container">
-    <div class="slots">
-      <div class="column" data-col="0"></div>
-      <div class="column" data-col="1"></div>
-      <div class="column" data-col="2"></div>
+    <div class="slot-machine-container">
+        <div class="slot-machine">
+            <div id="column1" class="slot-column"></div>
+            <div id="column2" class="slot-column"></div>
+            <div id="column3" class="slot-column"></div>
+        </div>
+        <button id="lever" class="lever-btn">Girar</button>
+        <div id="message" class="message"></div>
+        <div class="coins">Moedas: <span id="coin-count">1000</span></div>
+        <div class="attempts">Tentativas restantes: <span id="attempts-count">10</span></div>
     </div>
-    <div class="highlight-overlay"></div>
-  </div>
-  <button id="spin-button">Girar</button>
-  <div id="message" class="message"></div>
-  <script src="/static/js/slot.js"></script>
+    <script src="{{ url_for('static', filename='js/slot.js') }}"></script>
 </body>
 </html>

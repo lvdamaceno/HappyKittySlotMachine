@@ -1,45 +1,42 @@
-from flask import Flask, render_template, jsonify, session
-import random
-import os
+from flask import Flask, render_template, session, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
 
+# Inicialização da app
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta_aqui'
+app.config.from_object(Config)
+
+db = SQLAlchemy(app)
+
+# Exemplo de modelo para usuários e transações de moedas
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    coins = db.Column(db.Integer, default=app.config['STARTING_COINS'])
+    attempts = db.Column(db.Integer, default=app.config['MAX_ATTEMPTS'])
+
+class PointTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    change = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
+
+# Crie as tabelas com: flask shell -> db.create_all()
 
 @app.route('/')
 def index():
-    if os.environ.get('FLASK_ENV') == 'development':
-        session['coins'] = 1000
-    elif 'coins' not in session:
-        session['coins'] = 1000
-    return render_template('index.html', coins=session['coins'])
-
-@app.route('/spin')
-def spin():
-    coins = session.get('coins', 0)
-    if coins < 100:
-        return jsonify({ 'error': 'Sem moedas para jogar.', 'coins': coins })
-
-    coins -= 100
-    win = random.random() < 0.05
-    if win:
-        mid = [7, 7, 7]
+    # Aqui você pode buscar ou criar um usuário anônimo na sessão
+    user_id = session.get('user_id')
+    if not user_id:
+        user = User()
+        db.session.add(user)
+        db.session.commit()
+        session['user_id'] = user.id
     else:
-        mid = [random.randint(1, 7) for _ in range(3)]
+        user = User.query.get(user_id)
 
-    top = [(m - 1 if m > 1 else 7) for m in mid]
-    bottom = [(m + 1 if m < 7 else 1) for m in mid]
-    matrix = [top, mid, bottom]
+    return render_template('index.html', coins=user.coins, attempts=user.attempts)
 
-    bonus = 50 if any(val == 3 for row in matrix for val in row) else 0
-    coins += bonus
-
-    session['coins'] = coins
-    return jsonify({
-        'matrix': matrix,
-        'win': win,
-        'bonus': bonus,
-        'coins': coins
-    })
+# Mais rotas para girar, registrar transações, etc.
 
 if __name__ == '__main__':
     app.run(debug=True)

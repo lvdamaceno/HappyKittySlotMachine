@@ -1,90 +1,106 @@
-let lastValues = [1, 1, 1];
-
 document.addEventListener('DOMContentLoaded', () => {
-  const button = document.getElementById('spin-button');
-  const slotsContainer = document.querySelector('.slots-container');
+  const columns = [
+    document.getElementById('column1'),
+    document.getElementById('column2'),
+    document.getElementById('column3')
+  ];
+  const lever = document.getElementById('lever');
   const messageEl = document.getElementById('message');
-  const coinEl = document.getElementById('coin-counter');
-  const columns = Array.from(document.querySelectorAll('.column'));
-  const reelHeight = 80;
-  const cycles = 2;
-  const stepTime = 100;
+  const attemptsCountEl = document.getElementById('attempts-count');
+  const coinCountEl = document.getElementById('coin-count');
 
-  button.addEventListener('click', async e => {
-    e.preventDefault();
-    button.disabled = true;
-    messageEl.textContent = '';
-    slotsContainer.classList.remove('win');
+  let attempts = parseInt(attemptsCountEl.textContent, 10) || 10;
+  let coins = parseInt(coinCountEl.textContent, 10) || 0;
+  const figures = ['1','2','3','4','5','6','7'];
 
-    const response = await fetch('/spin');
-    const data = await response.json();
-
-    if (data.error) {
-      messageEl.textContent = data.error;
-      coinEl.textContent = `Moedas: ${data.coins}`;
+  function spin() {
+    if (attempts <= 0) {
+      messageEl.textContent = 'Sem tentativas restantes!';
       return;
     }
+    if (coins < 100) {
+      messageEl.textContent = 'Moedas insuficientes para jogar!';
+      return;
+    }
+    // Custo de 100 moedas por jogada
+    attempts--;
+    coins -= 100;
+    attemptsCountEl.textContent = attempts;
+    coinCountEl.textContent = coins;
+    messageEl.textContent = '';
 
-    const { matrix, win, bonus, coins } = data;
-    coinEl.textContent = `Moedas: ${coins}`;
+    // Sorteia índices finais
+    const results = columns.map(() => Math.floor(Math.random() * figures.length));
+    const baseDuration = 2000;
 
-    let finished = 0;
-
-    columns.forEach((colEl, idx) => {
-      setTimeout(() => {
-        const container = document.createElement('div');
-        container.className = 'reel-container';
-
-        const seq = [];
-        let start = lastValues[idx];
-        for (let c = 0; c < cycles * 7; c++) {
-          seq.push(((start + c - 1) % 7) + 1);
-        }
-        seq.push(matrix[0][idx], matrix[1][idx], matrix[2][idx]);
-        lastValues[idx] = matrix[1][idx];
-
-        seq.forEach(val => {
-          const div = document.createElement('div');
-          div.className = 'reel';
-          div.textContent = val;
-          container.appendChild(div);
-        });
-
-        colEl.innerHTML = '';
-        colEl.appendChild(container);
-
-        const totalHeight = seq.length * reelHeight;
-        const keyframes = [
-          { transform: 'translateY(0)', offset: 0 },
-          { transform: `translateY(-${totalHeight * 0.2}px)`, offset: 0.3 },
-          { transform: `translateY(-${totalHeight * 0.5}px)`, offset: 0.6 },
-          { transform: `translateY(-${totalHeight - reelHeight * 3}px)`, offset: 1 }
-        ];
-
-        const animation = container.animate(keyframes, {
-          duration: 1200 + idx * 300,
-          easing: 'ease-out'
-        });
-
-        animation.onfinish = () => {
-          colEl.innerHTML = '';
-          matrix.forEach(row => {
-            const reel = document.createElement('div');
-            reel.className = 'reel';
-            reel.textContent = row[idx];
-            colEl.appendChild(reel);
-          });
-
-          finished++;
-          if (finished === columns.length) {
-            if (win) slotsContainer.classList.add('win');
-            let msg = win ? '🎉 JACKPOT! Você acertou 7-7-7!' : 'Tente novamente!';
-            if (bonus > 0 && !win) msg += ` + Você ganhou ${bonus} moedas de bônus por aparecer um 3!`;
-            messageEl.textContent = msg;
-            button.disabled = coins < 100;
-          }
-        };
-      }, idx * 300);
+    columns.forEach((col, i) => {
+      const duration = baseDuration + i * 500;
+      animateColumnSequential(col, results[i], duration);
     });
-  });
+
+    // Pós-animation
+    setTimeout(() => {
+      // Conta aparições do número '3'
+      const threeCount = results.filter(i => figures[i] === '3').length;
+      let reward = 0;
+      if (threeCount === 1) reward = 50;
+      if (threeCount === 2) reward = 100;
+      if (threeCount === 3) reward = 150;
+      coins += reward;
+      coinCountEl.textContent = coins;
+
+      if (reward > 0) {
+        messageEl.textContent = `Você acertou ${threeCount}x '3' e ganhou ${reward} moedas!`;
+      } else if (results.every(r => r === results[0])) {
+        messageEl.textContent = 'Parabéns! Você ganhou o jackpot!';
+      } else {
+        messageEl.textContent = 'Tente novamente.';
+      }
+    }, baseDuration + 1000);
+  }
+
+  /**
+   * Anima a coluna sequencialmente, passando por cada figura em ordem, desacelerando até o finalIndex.
+   * @param {HTMLElement} column
+   * @param {number} finalIndex
+   * @param {number} duration Tempo total da animação em ms
+   */
+  function animateColumnSequential(column, finalIndex, duration) {
+    const startTime = performance.now();
+    const endTime = startTime + duration;
+    const totalFigures = figures.length;
+    let position = 0;
+    /**
+     * Intervalo mínimo e máximo (ms) para controle de velocidade
+     */
+    const minInterval = 50;    // mais rápido
+    const maxInterval = 300;   // mais lento
+
+    function update(now) {
+      // Calcula t de 0 a 1
+      const t = Math.min((now - startTime) / duration, 1);
+      // Intervalo linearmente entre min e max
+      const interval = minInterval + (maxInterval - minInterval) * t;
+
+      // Armazena última vez que atualizou em propriedade privada
+      if (!column._lastUpdate) column._lastUpdate = now;
+      if (now - column._lastUpdate >= interval) {
+        position = (position + 1) % totalFigures;
+        column.textContent = figures[position];
+        column._lastUpdate = now;
+      }
+
+      if (now < endTime) {
+        requestAnimationFrame(update);
+      } else {
+        // Garante parada suave no finalIndex
+        column.textContent = figures[finalIndex];
+        delete column._lastUpdate;
+      }
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  lever.addEventListener('click', spin);
 });
