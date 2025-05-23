@@ -75,6 +75,7 @@ Happy Kitty Slot Machine é uma aplicação web simples de jogo de loteria (máq
    ```
 
    Acesse em `http://localhost:5000`.
+7. Cadastre um jogador no banco de dados (para teste usar o 12345678900)
 
 ## Modificando Probabilidades
 
