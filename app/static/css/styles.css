@@ -1,4 +1,6 @@
-/* Reset bÃ¡sico */
+@charset "UTF-8"; /* 1. Especifique explicitamente o encoding UTF-8 antes de qualquer outro conteúdo */
+
+/* Reset básico */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   width: 100%;
@@ -38,7 +40,7 @@ body {
   color: #eee;
 }
 .rules ul li:before {
-  content: 'â€¢';
+  content: '\2022';
   position: absolute;
   left: 0;
   color: #e91e63;
@@ -131,9 +133,25 @@ body {
   z-index:1000;
 }
 @media (max-width: 600px) {
-  .rules { padding: 0.75rem; }
-  .rules h2 { font-size: 1.25rem; }
-  .rules ul li { padding-left: 1.25rem; margin-bottom: 0.4rem; }
+  .rules {
+    padding: 0.75rem;
+  }
+  .rules h2 {
+    font-size: 1rem;
+  }
+  .rules ul li {
+    font-size: 0.75rem;
+    padding-left: 1.25rem;
+    margin-bottom: 0.4rem;
+  }
+
+  /* --- slots quadrados em mobile --- */
+  .slot-column {
+    /* zera a altura fixa */
+    height: auto;
+    /* força proporção 1:1 */
+    aspect-ratio: 1 / 1;
+  }
 }
 /* Header stats: moedas e tentativas acima dos slots */
 .header-stats {
