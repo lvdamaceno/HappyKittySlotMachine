@@ -24,12 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const container = document.createElement('div');
       container.className = 'reel-container';
 
-      // Sequência fixa de 1 a 7, repetida, e valores finais
+      // Sequência fixa de 1 a 7, repetida
       const seq = [];
       for (let c = 0; c < cycles; c++) {
         for (let n = 1; n <= 7; n++) seq.push(n);
       }
-      // Valores finais: matrix[0][col], matrix[1][col], matrix[2][col]
+      // Valores finais: topo, meio, base segundo matrix
       seq.push(matrix[0][colIndex], matrix[1][colIndex], matrix[2][colIndex]);
 
       // Preenche o container
@@ -47,17 +47,15 @@ document.addEventListener('DOMContentLoaded', () => {
       highlight.className = 'highlight';
       colEl.appendChild(highlight);
 
-      // Calcula translado
+      // Anima pronta a roldana para cima
       const totalHeight = seq.length * reelHeight;
       container.style.transform = 'translateY(0)';
-      // Força reflow para aplicar estilo antes da transição
-      container.getBoundingClientRect();
+      container.getBoundingClientRect(); // reflow
       container.style.transition = `transform ${stepTime * seq.length}ms ease-out`;
       container.style.transform = `translateY(-${totalHeight - reelHeight * 3}px)`;
 
-      // Ao fim da animação
       container.addEventListener('transitionend', () => {
-        // Restaura estrutura estática com 3 reels finais
+        // Após animação, restaura 3 reels finais
         colEl.innerHTML = '';
         matrix.forEach((rowArr, r) => {
           const node = document.createElement('div');
@@ -65,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
           node.textContent = rowArr[colIndex];
           colEl.appendChild(node);
         });
-        // Re-anexa highlight
         const hl = document.createElement('div');
         hl.className = 'highlight';
         colEl.appendChild(hl);
