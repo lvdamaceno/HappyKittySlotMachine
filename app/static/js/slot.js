@@ -15,6 +15,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const icons = ['star', 'heart', 'diamond', 'club', 'spade', 'crown', 'bell'];
 
+  // === INÍCIO PESOS PONDERADOS ===
+  // soma dos valores deve ser 1.0
+  const weights = {
+    star:    0.23,
+    heart:   0.23,
+    diamond: 0.15,
+    club:    0.15,
+    spade:   0.15,
+    crown:   0.05,
+    bell:    0.04
+  };
+
+  function weightedRandomIndex() {
+    const rnd = Math.random();
+    let accum = 0;
+    for (let i = 0; i < icons.length; i++) {
+      accum += weights[icons[i]];
+      if (rnd < accum) return i;
+    }
+    // fallback
+    return icons.length - 1;
+  }
+  // === FIM PESOS PONDERADOS ===
+
   function resizeCanvas() {
     confettiCanvas.width = window.innerWidth;
     confettiCanvas.height = window.innerHeight;
@@ -25,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeSlots() {
     columns.forEach(col => {
       const idx = Math.floor(Math.random() * icons.length);
-      col.innerHTML = `<i class="ph ph-${icons[idx]}"></i>`;
+      col.innerHTML = `<i class=\"ph ph-${icons[idx]}\"></i>`;
     });
   }
   initializeSlots();
@@ -44,7 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
     coinEl.textContent = coins;
     messageEl.textContent = '';
 
-    const results = columns.map(() => Math.floor(Math.random() * icons.length));
+    // sorteio ponderado em vez de uniforme
+    const results = columns.map(() => weightedRandomIndex());
     const baseDuration = 2000;
 
     // Remove classes de destaque antes de cada giro
@@ -79,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Mensagens e penalidades
       if (hitsDiamond > 0) {
-        messageEl.textContent = `Você acertou ${hitsDiamond}x "diamond" e ganhou ${reward} moedas!`;
+        messageEl.textContent = `Você acertou ${hitsDiamond}x \"diamond\" e ganhou ${reward} moedas!`;
       }
       else if (bellCount > 0) {
         // penalidade de sinos
