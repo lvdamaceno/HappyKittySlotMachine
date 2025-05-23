@@ -31,9 +31,10 @@
 
   <!-- Regras do jogo abaixo dos slots -->
   <div class="rules">
-    <h2>Regras do jogo</h2>
-    <ul>
+  <h2>Regras do jogo</h2>
+  <ul>
     <li>Cada jogada custa 100 moedas.</li>
+
     <li><strong>Ícone (Diamante):</strong>
       <ul>
         <li>1 diamante = +50 moedas</li>
@@ -41,12 +42,23 @@
         <li>3 diamantes = +150 moedas</li>
       </ul>
     </li>
+
+    <li><strong>Ícone (Sino):</strong>
+      <ul>
+        <li>1 sino = –50 moedas</li>
+        <li>2 sinos = –100 moedas</li>
+        <li>3 sinos = –150 moedas</li>
+      </ul>
+    </li>
+
     <li><strong>3 coroas = Jackpot!</strong></li>
   </ul>
-      <p class="rules-footer" style="font-size:0.7em; color:#666; margin-top:0.5em; line-height:1.4; text-align: justify">
-          *1 diamante (50 moedas): 31,49%, 2 diamantes (100 moedas): 5,25%, 3 diamantes (150 moedas): 0,29%, Jackpot – 3 coroas: 0,29%, Chance total de vitória: 37,32%, Chance de derrota: 62,68%
-      </p>
-  </div>
+
+  <!-- texto miúdo com probabilidades, se quiser manter -->
+  <p class="rules-footer" style="font-size:0.6em; color:#666; margin-top:0.5em; line-height:1.4;">
+    1 diamante (50 moedas): 31.49%, 2 diamantes (100 moedas): 5.25%, 3 diamantes (150 moedas): 0.29%, 1 sino (–50 moedas): 14.29%, 2 sinos (–100 moedas): 3.06%, 3 sinos (–150 moedas): 0.29%, Jackpot – 3 coroas: 0.29%, Chance total de vitória: 37.32%, Chance de derrota: 62.68%
+  </p>
+</div>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="{{ url_for('static', filename='js/slot.js') }}"></script>

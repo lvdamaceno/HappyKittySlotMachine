@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // Exibe ícones iniciais ao carregar a página
   function initializeSlots() {
     columns.forEach(col => {
       const idx = Math.floor(Math.random() * icons.length);
@@ -35,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (attempts <= 0) { messageEl.textContent = 'Sem tentativas!'; return; }
     if (coins < 100)   { messageEl.textContent = 'Moedas insuficientes!'; return; }
 
-    // Desativa o botão durante o giro
     lever.disabled = true;
     lever.classList.add('lever-active');
     setTimeout(() => lever.classList.remove('lever-active'), 300);
@@ -49,28 +47,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const results = columns.map(() => Math.floor(Math.random() * icons.length));
     const baseDuration = 2000;
 
-    columns.forEach(col => col.classList.remove('winner'));
+    // Remove classes de destaque antes de cada giro
+    columns.forEach(col => col.classList.remove('winner', 'coin-lose'));
 
     columns.forEach((col, i) => animateColumn(col, results[i], baseDuration + i * 500));
 
     setTimeout(() => {
-      const hits = results.filter(i => icons[i] === 'diamond').length;
-      const reward = {1:50, 2:100, 3:150}[hits] || 0;
+      // Conta diamantes e sinos
+      const hitsDiamond = results.filter(i => icons[i] === 'diamond').length;
+      const bellCount   = results.filter(i => icons[i] === 'bell').length;
+      // Recompensa por diamante
+      const reward = {1:50, 2:100, 3:150}[hitsDiamond] || 0;
 
+      // Aplica ganho de diamante
       coins += reward;
       coinEl.textContent = coins;
 
       if (reward > 0) {
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      }
-
-      columns.forEach((col, i) => {
-        if (icons[results[i]] === 'diamond') {
-          col.classList.add('winner');
-        }
-      });
-
-      if (reward > 0) {
+        columns.forEach((col, i) => {
+          if (icons[results[i]] === 'diamond') {
+            col.classList.add('winner');
+          }
+        });
         const gain = document.createElement('span');
         gain.textContent = `+${reward}`;
         gain.className = 'coin-gain';
@@ -78,20 +77,35 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => gain.remove(), 1000);
       }
 
-      if (hits > 0) {
-        messageEl.textContent = `Você acertou ${hits}x "diamond" e ganhou ${reward} moedas!`;
+      // Mensagens e penalidades
+      if (hitsDiamond > 0) {
+        messageEl.textContent = `Você acertou ${hitsDiamond}x "diamond" e ganhou ${reward} moedas!`;
       }
-      // novo: só considera jackpot se for exatamente 3 coroas
+      else if (bellCount > 0) {
+        // penalidade de sinos
+        const loss = bellCount * 50;
+        coins -= loss;
+        coinEl.textContent = coins;
+        messageEl.textContent = `Você acertou ${bellCount} sino${bellCount > 1 ? 's' : ''} e perdeu ${loss} moedas!`;
+
+        // destaca colunas de sino com borda vermelha
+        columns.forEach((col, i) => {
+          if (icons[results[i]] === 'bell') {
+            col.classList.add('coin-lose');
+          }
+        });
+      }
       else if (
+        // jackpot de coroas
         results.every(r => r === results[0]) &&
         icons[results[0]] === 'crown'
       ) {
         messageEl.textContent = 'Jackpot! Parabéns!';
-      } else {
+      }
+      else {
         messageEl.textContent = 'Tente novamente.';
       }
 
-      // Reativa o botão após o giro
       lever.disabled = false;
     }, baseDuration + 1000);
   }
@@ -107,13 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!column._lastUpdate) column._lastUpdate = now;
       if (now - column._lastUpdate >= interval) {
         pos = (pos + 1) % total;
-        column.innerHTML = `<i class="ph ph-${icons[pos]}"></i>`;
+        column.innerHTML = `<i class=\"ph ph-${icons[pos]}\"></i>`;
         column._lastUpdate = now;
       }
       if (now < start + duration) {
         requestAnimationFrame(update);
       } else {
-        column.innerHTML = `<i class="ph ph-${icons[finalIndex]}"></i>`;
+        column.innerHTML = `<i class=\"ph ph-${icons[finalIndex]}\"></i>`;
         delete column._lastUpdate;
       }
     }
