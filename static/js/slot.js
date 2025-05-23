@@ -1,81 +1,90 @@
-// Slot-machine realista: roldana gira dentro de cada coluna
+let lastValues = [1, 1, 1];
 
 document.addEventListener('DOMContentLoaded', () => {
   const button = document.getElementById('spin-button');
-  const slots = document.querySelector('.slots');
+  const slotsContainer = document.querySelector('.slots-container');
   const messageEl = document.getElementById('message');
+  const coinEl = document.getElementById('coin-counter');
   const columns = Array.from(document.querySelectorAll('.column'));
   const reelHeight = 80;
-  const cycles = 2;         // quantas voltas completas de 1 a 7
-  const stepTime = 100;      // ms por número
+  const cycles = 2;
+  const stepTime = 100;
 
   button.addEventListener('click', async e => {
     e.preventDefault();
     button.disabled = true;
     messageEl.textContent = '';
-    slots.classList.remove('win');
+    slotsContainer.classList.remove('win');
 
     const response = await fetch('/spin');
-    const { matrix, win } = await response.json();
+    const data = await response.json();
+
+    if (data.error) {
+      messageEl.textContent = data.error;
+      coinEl.textContent = `Moedas: ${data.coins}`;
+      return;
+    }
+
+    const { matrix, win, bonus, coins } = data;
+    coinEl.textContent = `Moedas: ${coins}`;
+
     let finished = 0;
 
-    columns.forEach((colEl, colIndex) => {
-      // Cria container interno para reels e insere sequência
-      const container = document.createElement('div');
-      container.className = 'reel-container';
+    columns.forEach((colEl, idx) => {
+      setTimeout(() => {
+        const container = document.createElement('div');
+        container.className = 'reel-container';
 
-      // Sequência fixa de 1 a 7, repetida
-      const seq = [];
-      for (let c = 0; c < cycles; c++) {
-        for (let n = 1; n <= 7; n++) seq.push(n);
-      }
-      // Valores finais: topo, meio, base segundo matrix
-      seq.push(matrix[0][colIndex], matrix[1][colIndex], matrix[2][colIndex]);
-
-      // Preenche o container
-      seq.forEach(num => {
-        const reel = document.createElement('div');
-        reel.className = 'reel';
-        reel.textContent = num;
-        container.appendChild(reel);
-      });
-
-      // Limpa coluna e adiciona container e highlight
-      colEl.innerHTML = '';
-      colEl.appendChild(container);
-      const highlight = document.createElement('div');
-      highlight.className = 'highlight';
-      colEl.appendChild(highlight);
-
-      // Anima pronta a roldana para cima
-      const totalHeight = seq.length * reelHeight;
-      container.style.transform = 'translateY(0)';
-      container.getBoundingClientRect(); // reflow
-      container.style.transition = `transform ${stepTime * seq.length}ms ease-out`;
-      container.style.transform = `translateY(-${totalHeight - reelHeight * 3}px)`;
-
-      container.addEventListener('transitionend', () => {
-        // Após animação, restaura 3 reels finais
-        colEl.innerHTML = '';
-        matrix.forEach((rowArr, r) => {
-          const node = document.createElement('div');
-          node.className = 'reel';
-          node.textContent = rowArr[colIndex];
-          colEl.appendChild(node);
-        });
-        const hl = document.createElement('div');
-        hl.className = 'highlight';
-        colEl.appendChild(hl);
-
-        finished++;
-        if (finished === columns.length) {
-          if (win) slots.classList.add('win');
-          messageEl.textContent = win
-            ? '🎉 JACKPOT! Você acertou 7-7-7!'
-            : 'Tente novamente!';
-          button.disabled = false;
+        const seq = [];
+        let start = lastValues[idx];
+        for (let c = 0; c < cycles * 7; c++) {
+          seq.push(((start + c - 1) % 7) + 1);
         }
-      }, { once: true });
+        seq.push(matrix[0][idx], matrix[1][idx], matrix[2][idx]);
+        lastValues[idx] = matrix[1][idx];
+
+        seq.forEach(val => {
+          const div = document.createElement('div');
+          div.className = 'reel';
+          div.textContent = val;
+          container.appendChild(div);
+        });
+
+        colEl.innerHTML = '';
+        colEl.appendChild(container);
+
+        const totalHeight = seq.length * reelHeight;
+        const keyframes = [
+          { transform: 'translateY(0)', offset: 0 },
+          { transform: `translateY(-${totalHeight * 0.2}px)`, offset: 0.3 },
+          { transform: `translateY(-${totalHeight * 0.5}px)`, offset: 0.6 },
+          { transform: `translateY(-${totalHeight - reelHeight * 3}px)`, offset: 1 }
+        ];
+
+        const animation = container.animate(keyframes, {
+          duration: 1200 + idx * 300,
+          easing: 'ease-out'
+        });
+
+        animation.onfinish = () => {
+          colEl.innerHTML = '';
+          matrix.forEach(row => {
+            const reel = document.createElement('div');
+            reel.className = 'reel';
+            reel.textContent = row[idx];
+            colEl.appendChild(reel);
+          });
+
+          finished++;
+          if (finished === columns.length) {
+            if (win) slotsContainer.classList.add('win');
+            let msg = win ? '🎉 JACKPOT! Você acertou 7-7-7!' : 'Tente novamente!';
+            if (bonus > 0 && !win) msg += ` + Você ganhou ${bonus} moedas de bônus por aparecer um 3!`;
+            messageEl.textContent = msg;
+            button.disabled = coins < 100;
+          }
+        };
+      }, idx * 300);
     });
   });
 });

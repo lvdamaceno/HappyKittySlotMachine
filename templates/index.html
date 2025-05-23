@@ -2,15 +2,20 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Caça-Níquel 7s</title>
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
   <h1>🎰 Caça-Níquel 7s 🎰</h1>
-  <div class="slots">
-    <div class="column" data-col="0"></div>
-    <div class="column" data-col="1"></div>
-    <div class="column" data-col="2"></div>
+  <div id="coin-counter">Moedas: {{ coins }}</div>
+  <div class="slots-container">
+    <div class="slots">
+      <div class="column" data-col="0"></div>
+      <div class="column" data-col="1"></div>
+      <div class="column" data-col="2"></div>
+    </div>
+    <div class="highlight-overlay"></div>
   </div>
   <button id="spin-button">Girar</button>
   <div id="message" class="message"></div>
