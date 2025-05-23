@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, redirect, url_for
+from flask import Blueprint, render_template, jsonify, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from app.services import GameService
 from app.models import Pontos, Jogadas
@@ -20,6 +20,8 @@ def index():
 @main_bp.route('/spin', methods=['POST'])
 @login_required
 def spin():
+    current_app.logger.info(f"→ Rota /spin RECEBIDA para CPF={current_user.cpf}")
+    print(f"→ Rota /spin RECEBIDA para CPF={current_user.cpf}", flush=True)
     # Executa o spin e já grava no banco via GameService
     results, reward, error = GameService.spin(current_user.cpf)
     if error:

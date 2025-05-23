@@ -1,162 +1,150 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const columns = [
-    document.getElementById('column1'),
-    document.getElementById('column2'),
-    document.getElementById('column3')
-  ];
-  const lever = document.getElementById('lever');
-  const messageEl = document.getElementById('message');
-  const attemptsEl = document.getElementById('attempts-count');
-  const coinEl = document.getElementById('coin-count');
+  const columns        = ['column1','column2','column3'].map(id => document.getElementById(id));
+  const lever          = document.getElementById('lever');
+  const messageEl      = document.getElementById('message');
+  const attemptsEl     = document.getElementById('attempts-count');
+  const coinEl         = document.getElementById('coin-count');
   const confettiCanvas = document.getElementById('confetti-canvas');
 
-  let attempts = parseInt(attemptsEl.textContent, 10);
-  let coins = parseInt(coinEl.textContent, 10);
+  const icons = ['star','heart','diamond','club','spade','crown','bell'];
+  let spinIntervals = [];
 
-  const icons = ['star', 'heart', 'diamond', 'club', 'spade', 'crown', 'bell'];
-
-  // === INÍCIO PESOS PONDERADOS ===
-  // soma dos valores deve ser 1.0
-  const weights = {
-    star:    0.23,
-    heart:   0.23,
-    diamond: 0.15,
-    club:    0.15,
-    spade:   0.15,
-    crown:   0.05,
-    bell:    0.04
-  };
-
-  function weightedRandomIndex() {
-    const rnd = Math.random();
-    let accum = 0;
-    for (let i = 0; i < icons.length; i++) {
-      accum += weights[icons[i]];
-      if (rnd < accum) return i;
-    }
-    // fallback
-    return icons.length - 1;
-  }
-  // === FIM PESOS PONDERADOS ===
-
-  function resizeCanvas() {
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
+  // Inicializa slots aleatoriamente
   function initializeSlots() {
     columns.forEach(col => {
       const idx = Math.floor(Math.random() * icons.length);
-      col.innerHTML = `<i class=\"ph ph-${icons[idx]}\"></i>`;
+      col.innerHTML = `<i class="ph ph-${icons[idx]}"></i>`;
     });
   }
+
+  // Animação inicial ao carregar: spin rápido e parar na posição inicial
+  function initialSpin() {
+    const initialIcons = columns.map(col => col.querySelector('i').classList[1].split('-')[1]);
+    const finalIndices  = initialIcons.map(f => icons.indexOf(f));
+    // animação genérica antes de desacelerar
+    spinIntervals = columns.map(col =>
+      setInterval(() => {
+        const rnd = Math.floor(Math.random() * icons.length);
+        col.innerHTML = `<i class=\"ph ph-${icons[rnd]}\"></i>`;
+      }, 100)
+    );
+    // depois aplica desaceleração até o ícone inicial
+    const baseDuration = 800;
+    setTimeout(() => {
+      clearSpinIntervals();
+      finalIndices.forEach((finalIndex, i) => {
+        animateColumn(columns[i], finalIndex, baseDuration + i * 200);
+      });
+    }, 400);
+  }
+
   initializeSlots();
+  initialSpin();
 
-  function spin() {
-    if (attempts <= 0) { messageEl.textContent = 'Sem tentativas!'; return; }
-    if (coins < 100)   { messageEl.textContent = 'Moedas insuficientes!'; return; }
+  function shootConfetti() {
+    confetti.create(confettiCanvas, { resize: true })({ spread: 60, particleCount: 150 });
+  }
 
+  async function spin() {
     lever.disabled = true;
     lever.classList.add('lever-active');
     setTimeout(() => lever.classList.remove('lever-active'), 300);
 
-    attempts--;
-    coins -= 100;
-    attemptsEl.textContent = attempts;
-    coinEl.textContent = coins;
-    messageEl.textContent = '';
+    messageEl.textContent = 'Girando...';
 
-    // sorteio ponderado em vez de uniforme
-    const results = columns.map(() => weightedRandomIndex());
-    const baseDuration = 2000;
+    // animações genéricas
+    spinIntervals = columns.map(col =>
+      setInterval(() => {
+        const rnd = Math.floor(Math.random() * icons.length);
+        col.innerHTML = `<i class=\"ph ph-${icons[rnd]}\"></i>`;
+      }, 100)
+    );
 
-    // Remove classes de destaque antes de cada giro
-    columns.forEach(col => col.classList.remove('winner', 'coin-lose'));
+    try {
+      const resp = await fetch('/spin', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'
+      });
+      if (!resp.ok) {
+        const err = await resp.json();
+        messageEl.textContent = err.error;
+        clearSpinIntervals();
+        lever.disabled = false;
+        return;
+      }
 
-    columns.forEach((col, i) => animateColumn(col, results[i], baseDuration + i * 500));
+      const { figures, coins, attempts, reward } = await resp.json();
+      clearSpinIntervals();
 
-    setTimeout(() => {
-      // Conta diamantes e sinos
-      const hitsDiamond = results.filter(i => icons[i] === 'diamond').length;
-      const bellCount   = results.filter(i => icons[i] === 'bell').length;
-      // Recompensa por diamante
-      const reward = {1:50, 2:100, 3:150}[hitsDiamond] || 0;
+      const finalIndices  = figures.map(f => parseInt(f, 10) - 1);
+      const baseDuration2 = 1000;
+      columns.forEach(col => col.classList.remove('winner','coin-lose'));
 
-      // Aplica ganho de diamante
-      coins += reward;
-      coinEl.textContent = coins;
+      finalIndices.forEach((finalIndex, i) => {
+        animateColumn(columns[i], finalIndex, baseDuration2 + i * 300);
+      });
 
-      if (reward > 0) {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        columns.forEach((col, i) => {
-          if (icons[results[i]] === 'diamond') {
-            col.classList.add('winner');
+      setTimeout(() => {
+        coinEl.textContent     = coins;
+        attemptsEl.textContent = attempts;
+
+        if (reward > 0) {
+          shootConfetti();
+          messageEl.textContent = `Você ganhou ${reward} moedas!`;
+          finalIndices.forEach((idx, i) => {
+            if (icons[idx] === 'diamond') columns[i].classList.add('winner');
+          });
+        } else {
+          const bellHits = finalIndices.filter(idx => icons[idx] === 'bell').length;
+          if (bellHits > 0) {
+            const loss = bellHits * 50;
+            messageEl.textContent = `Você acertou ${bellHits} sino${bellHits>1?'s':''} e perdeu ${loss} moedas!`;
+            finalIndices.forEach((idx,i) => {
+              if (icons[idx] === 'bell') columns[i].classList.add('coin-lose');
+            });
+          } else if (finalIndices.every(idx => icons[idx] === 'crown')) {
+            messageEl.textContent = 'Jackpot! Parabéns!';
+          } else {
+            messageEl.textContent = 'Tente novamente.';
           }
-        });
-        const gain = document.createElement('span');
-        gain.textContent = `+${reward}`;
-        gain.className = 'coin-gain';
-        document.querySelector('.coins').appendChild(gain);
-        setTimeout(() => gain.remove(), 1000);
-      }
+        }
+        lever.disabled = false;
+      }, baseDuration2 + 400);
 
-      // Mensagens e penalidades
-      if (hitsDiamond > 0) {
-        messageEl.textContent = `Você acertou ${hitsDiamond}x \"diamond\" e ganhou ${reward} moedas!`;
-      }
-      else if (bellCount > 0) {
-        // penalidade de sinos
-        const loss = bellCount * 50;
-        coins -= loss;
-        coinEl.textContent = coins;
-        messageEl.textContent = `Você acertou ${bellCount} sino${bellCount > 1 ? 's' : ''} e perdeu ${loss} moedas!`;
-
-        // destaca colunas de sino com borda vermelha
-        columns.forEach((col, i) => {
-          if (icons[results[i]] === 'bell') {
-            col.classList.add('coin-lose');
-          }
-        });
-      }
-      else if (
-        // jackpot de coroas
-        results.every(r => r === results[0]) &&
-        icons[results[0]] === 'crown'
-      ) {
-        messageEl.textContent = 'Jackpot! Parabéns!';
-      }
-      else {
-        messageEl.textContent = 'Tente novamente.';
-      }
-
+    } catch (e) {
+      console.error(e);
+      messageEl.textContent = 'Erro na comunicação com o servidor.';
+      clearSpinIntervals();
       lever.disabled = false;
-    }, baseDuration + 1000);
+    }
+  }
+
+  function clearSpinIntervals() {
+    spinIntervals.forEach(id => clearInterval(id));
+    spinIntervals = [];
   }
 
   function animateColumn(column, finalIndex, duration) {
-    const start = performance.now();
-    let pos = 0;
     const total = icons.length;
+    const start = performance.now();
+    let pos   = Math.floor(Math.random() * total);
 
     function update(now) {
       const t = Math.min((now - start) / duration, 1);
       const interval = 50 + (300 - 50) * t;
-      if (!column._lastUpdate) column._lastUpdate = now;
-      if (now - column._lastUpdate >= interval) {
+
+      if (!column._last) column._last = now;
+      if (now - column._last >= interval) {
         pos = (pos + 1) % total;
         column.innerHTML = `<i class=\"ph ph-${icons[pos]}\"></i>`;
-        column._lastUpdate = now;
+        column._last = now;
       }
       if (now < start + duration) {
         requestAnimationFrame(update);
       } else {
         column.innerHTML = `<i class=\"ph ph-${icons[finalIndex]}\"></i>`;
-        delete column._lastUpdate;
+        delete column._last;
       }
     }
-
     requestAnimationFrame(update);
   }
 
