@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Caça-Níquel</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        .reels { font-size: 3rem; margin-bottom: 20px; }
+        button { padding: 10px 20px; font-size: 1rem; }
+        .message { margin-top: 20px; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Caça-Níquel</h1>
+    <form method="post">
+        <div class="reels">
+            {% if results %}
+                {{ results[0] }} &nbsp; {{ results[1] }} &nbsp; {{ results[2] }}
+            {% else %}
+                - &nbsp; - &nbsp; -
+            {% endif %}
+        </div>
+        <button type="submit">Girar</button>
+    </form>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+</body>
+</html>
