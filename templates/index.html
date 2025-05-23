@@ -2,28 +2,30 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Caça-Níquel</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        .reels { font-size: 3rem; margin-bottom: 20px; }
-        button { padding: 10px 20px; font-size: 1rem; }
-        .message { margin-top: 20px; font-size: 1.5rem; }
-    </style>
+    <title>Caça-Níquel 7s</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <h1>Caça-Níquel</h1>
-    <form method="post">
-        <div class="reels">
-            {% if results %}
-                {{ results[0] }} &nbsp; {{ results[1] }} &nbsp; {{ results[2] }}
-            {% else %}
-                - &nbsp; - &nbsp; -
-            {% endif %}
+    <h1>🎰 Caça-Níquel 7s 🎰</h1>
+    <div class="slots">
+        <div class="row">
+            <div class="reel" data-row="0" data-col="0">-</div>
+            <div class="reel" data-row="0" data-col="1">-</div>
+            <div class="reel" data-row="0" data-col="2">-</div>
         </div>
-        <button type="submit">Girar</button>
-    </form>
-    {% if message %}
-        <div class="message">{{ message }}</div>
-    {% endif %}
+        <div class="row highlight">
+            <div class="reel" data-row="1" data-col="0">-</div>
+            <div class="reel" data-row="1" data-col="1">-</div>
+            <div class="reel" data-row="1" data-col="2">-</div>
+        </div>
+        <div class="row">
+            <div class="reel" data-row="2" data-col="0">-</div>
+            <div class="reel" data-row="2" data-col="1">-</div>
+            <div class="reel" data-row="2" data-col="2">-</div>
+        </div>
+    </div>
+    <button id="spin-button">Girar</button>
+    <div id="message" class="message"></div>
+    <script src="/static/js/slot.js"></script>
 </body>
 </html>

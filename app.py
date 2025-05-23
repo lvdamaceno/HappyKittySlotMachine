@@ -1,21 +1,26 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, jsonify
 import random
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    results = []
-    message = ''
-    if request.method == 'POST':
-        # Gira os 3 rolos com números de 1 a 7
-        results = [random.randint(1, 7) for _ in range(3)]
-        # Verifica vitória (todos 7)
-        if results.count(7) == 3:
-            message = '🎉 Você ganhou! Parabéns!'
-        else:
-            message = 'Tente novamente.'
-    return render_template('index.html', results=results, message=message)
+    return render_template('index.html')
+
+@app.route('/spin')
+def spin():
+    # Gera valores para 3 linhas e 3 colunas
+    matrix = [
+        [random.randint(1, 7) for _ in range(3)],  # topo
+        [random.randint(1, 7) for _ in range(3)],  # meio
+        [random.randint(1, 7) for _ in range(3)]   # base
+    ]
+    # verifica vitória na linha do meio
+    win = (matrix[1] == [7, 7, 7])
+    return jsonify({
+        'matrix': matrix,
+        'win': win
+    })
 
 if __name__ == '__main__':
     app.run(debug=True)
