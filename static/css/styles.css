@@ -18,10 +18,10 @@ body {
   background: #333;
   padding: 1rem;
   border-radius: 8px;
-  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
   width: 100%;
   max-width: 480px;
-  text-align: left; /* Alinhamento à esquerda */
+  text-align: left;
   font-family: Arial, sans-serif;
 }
 .rules h2 {
@@ -29,11 +29,7 @@ body {
   margin-bottom: 0.75rem;
   color: #ffd700;
 }
-.rules ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
-}
+.rules ul { list-style: none; padding-left: 0; margin: 0; }
 .rules ul li {
   position: relative;
   padding-left: 1.5rem;
@@ -130,15 +126,21 @@ body {
   pointer-events:none;
   z-index:1000;
 }
- @media (max-width: 600px) {
-.rules {
-  padding: 0.75rem;
+@media (max-width: 600px) {
+  .rules { padding: 0.75rem; }
+  .rules h2 { font-size: 1.25rem; }
+  .rules ul li { padding-left: 1.25rem; margin-bottom: 0.4rem; }
 }
-.rules h2 {
-  font-size: 1.25rem;
+/* Header stats: moedas e tentativas acima dos slots */
+.header-stats {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 480px;
+  margin-bottom: 1rem;
+  font-family: Arial, sans-serif;
+  color: #fff;
 }
-.rules ul li {
-  padding-left: 1.25rem;
-  margin-bottom: 0.4rem;
-}
+.header-stats .coins, .header-stats .attempts {
+  font-size: 1rem;
 }

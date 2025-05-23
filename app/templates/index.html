@@ -11,10 +11,25 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-  <!-- Canvas para confetti -->
   <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
 
-  <!-- Regras do Jogo -->
+  <!-- Estatísticas: Moedas à esquerda e tentativas à direita -->
+  <div class="header-stats">
+    <div class="coins">Moedas: <span id="coin-count">{{ coins }}</span></div>
+    <div class="attempts">Tentativas restantes: <span id="attempts-count">{{ attempts }}</span></div>
+  </div>
+
+  <div class="slot-machine-container">
+    <div class="slot-machine">
+      <div id="column1" class="slot-column"><i class="ph ph-star"></i></div>
+      <div id="column2" class="slot-column"><i class="ph ph-heart"></i></div>
+      <div id="column3" class="slot-column"><i class="ph ph-diamond"></i></div>
+    </div>
+    <button id="lever" class="lever-btn">Girar</button>
+    <div id="message" class="message">Clique em girar e ganhe prêmios</div>
+  </div>
+
+  <!-- Regras do jogo abaixo dos slots -->
   <div class="rules">
     <h2>Regras do jogo</h2>
     <ul>
@@ -27,21 +42,6 @@
     </ul>
   </div>
 
-  <div class="slot-machine-container">
-    <div class="slot-machine">
-      <!-- Ícones iniciais fixos ou você pode deixá-los vazios para o JS inicializar -->
-      <div id="column1" class="slot-column"><i class="ph ph-star"></i></div>
-      <div id="column2" class="slot-column"><i class="ph ph-heart"></i></div>
-      <div id="column3" class="slot-column"><i class="ph ph-diamond"></i></div>
-    </div>
-    <button id="lever" class="lever-btn">Girar</button>
-    <div id="message" class="message"></div>
-    <!-- Aqui é onde Jinja injeta o valor real do banco -->
-    <div class="coins">Moedas: <span id="coin-count">{{ coins }}</span></div>
-    <div class="attempts">Tentativas restantes: <span id="attempts-count">{{ attempts }}</span></div>
-  </div>
-
-  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="{{ url_for('static', filename='js/slot.js') }}"></script>
 </body>
