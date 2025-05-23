@@ -79,8 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (hits > 0) {
-        messageEl.textContent = `Você acertou ${hits}x \"diamond\" e ganhou ${reward} moedas!`;
-      } else if (results.every(r => r === results[0])) {
+        messageEl.textContent = `Você acertou ${hits}x "diamond" e ganhou ${reward} moedas!`;
+      }
+      // novo: só considera jackpot se for exatamente 3 coroas
+      else if (
+        results.every(r => r === results[0]) &&
+        icons[results[0]] === 'crown'
+      ) {
         messageEl.textContent = 'Jackpot! Parabéns!';
       } else {
         messageEl.textContent = 'Tente novamente.';
