@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Slot Machine</title>
+
+  <!-- Phosphor Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <!-- Stylesheet principal -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+  <!-- Estilos específicos para login (mobile-first) -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #222;
+      font-family: Arial, sans-serif;
+    }
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      padding: 1rem;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 320px;
+      background: #333;
+      padding: 2rem 1rem;
+      border-radius: 8px;
+    }
+    .auth-form input {
+      padding: 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 1.5rem;
+      outline: none;
+    }
+    .auth-form button {
+      padding: 1rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      background: #e91e63;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .auth-form button:hover {
+      background: #d81b60;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <form class="auth-form" method="post">
+      <input name="cpf" type="text" placeholder="Informe seu cpf" maxlength="11" required autofocus />
+      <button type="submit">Jogar</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,16 +1,20 @@
 from flask_login import UserMixin
 from app.extensions import db
 
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
-    coins = db.Column(db.Integer, nullable=False)
-    attempts = db.Column(db.Integer, nullable=False)
+class Jogador(UserMixin, db.Model):
+    __tablename__ = 'jogadores'
+    cpf = db.Column(db.String(11), primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
 
-class PointTransaction(db.Model):
-    __tablename__ = 'point_transactions'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    change = db.Column(db.Integer, nullable=False)
-    timestamp = db.Column(db.DateTime, server_default=db.func.now())
-    user = db.relationship('User', backref='transactions')
+    def get_id(self):
+        return self.cpf
+
+class Pontos(db.Model):
+    __tablename__ = 'pontos'
+    cpf = db.Column(db.String(11), db.ForeignKey('jogadores.cpf'), primary_key=True)
+    pontos = db.Column(db.Integer, nullable=False)
+
+class Jogadas(db.Model):
+    __tablename__ = 'jogadas'
+    cpf = db.Column(db.String(11), db.ForeignKey('jogadores.cpf'), primary_key=True)
+    jogadas = db.Column(db.Integer, nullable=False)

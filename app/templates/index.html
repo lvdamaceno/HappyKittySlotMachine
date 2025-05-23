@@ -5,42 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Máquina Caça-Níquel</title>
   <!-- Phosphor Icons (Regular weight) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
-  <!-- Stylesheet principal -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <!-- Estilos principais -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
   <!-- Canvas para confetti -->
   <canvas id="confetti-canvas" class="confetti-canvas"></canvas>
 
-  <!-- Regras do Jogo: coluna única no topo -->
+  <!-- Regras do Jogo -->
   <div class="rules">
-    <h2>Como ganhar</h2>
+    <h2>Regras do jogo</h2>
     <ul>
       <li>Cada jogada custa <strong>100 moedas</strong>.</li>
       <li>Ícone <i class="ph ph-diamond"></i> (Diamante):</li>
-      <ul>
-        <li>1 diamante = +50 moedas</li>
-        <li>2 diamantes = +100 moedas</li>
-        <li>3 diamantes = +150 moedas</li>
-      </ul>
-      <li>Três ícones iguais de qualquer tipo = <strong>Jackpot!</strong></li>
+      <li>1 diamante = +50 moedas</li>
+      <li>2 diamantes = +100 moedas</li>
+      <li>3 diamantes = +150 moedas</li>
+      <li>Três ícones iguais = <strong>Jackpot!</strong></li>
     </ul>
   </div>
 
   <div class="slot-machine-container">
     <div class="slot-machine">
-      <div id="column1" class="slot-column"></div>
-      <div id="column2" class="slot-column"></div>
-      <div id="column3" class="slot-column"></div>
+      <!-- Ícones iniciais fixos ou você pode deixá-los vazios para o JS inicializar -->
+      <div id="column1" class="slot-column"><i class="ph ph-star"></i></div>
+      <div id="column2" class="slot-column"><i class="ph ph-heart"></i></div>
+      <div id="column3" class="slot-column"><i class="ph ph-diamond"></i></div>
     </div>
     <button id="lever" class="lever-btn">Girar</button>
     <div id="message" class="message"></div>
-    <div class="coins">Moedas: <span id="coin-count">1000</span></div>
-    <div class="attempts">Tentativas restantes: <span id="attempts-count">10</span></div>
+    <!-- Aqui é onde Jinja injeta o valor real do banco -->
+    <div class="coins">Moedas: <span id="coin-count">{{ coins }}</span></div>
+    <div class="attempts">Tentativas restantes: <span id="attempts-count">{{ attempts }}</span></div>
   </div>
 
-  <!-- Bibliotecas JS -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
   <script src="{{ url_for('static', filename='js/slot.js') }}"></script>
 </body>

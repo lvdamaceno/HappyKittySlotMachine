@@ -2,14 +2,13 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 
-# Instâncias globais para lazy initialization
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
-login_manager.login_view = 'main.index'
+# Página de login para usuários não autenticados
+login_manager.login_view = 'auth_page.login'
 
-# Callback para carregar usuário a partir de session (Flask-Login)
 @login_manager.user_loader
-def load_user(user_id):
-    from app.models import User
-    return User.query.get(int(user_id))
+def load_user(cpf):
+    from app.models import Jogador
+    return Jogador.query.get(cpf)
