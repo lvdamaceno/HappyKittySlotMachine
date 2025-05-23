@@ -6,95 +6,109 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   const lever = document.getElementById('lever');
   const messageEl = document.getElementById('message');
-  const attemptsCountEl = document.getElementById('attempts-count');
-  const coinCountEl = document.getElementById('coin-count');
+  const attemptsEl = document.getElementById('attempts-count');
+  const coinEl = document.getElementById('coin-count');
+  const confettiCanvas = document.getElementById('confetti-canvas');
 
-  let attempts = parseInt(attemptsCountEl.textContent, 10) || 10;
-  let coins = parseInt(coinCountEl.textContent, 10) || 0;
-  const figures = ['1','2','3','4','5','6','7'];
+  let attempts = parseInt(attemptsEl.textContent, 10);
+  let coins = parseInt(coinEl.textContent, 10);
+
+  const icons = ['star', 'heart', 'diamond', 'club', 'spade', 'crown', 'bell'];
+
+  function resizeCanvas() {
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  // Exibe ícones iniciais ao carregar a página
+  function initializeSlots() {
+    columns.forEach(col => {
+      const idx = Math.floor(Math.random() * icons.length);
+      col.innerHTML = `<i class="ph ph-${icons[idx]}"></i>`;
+    });
+  }
+  initializeSlots();
 
   function spin() {
-    if (attempts <= 0) {
-      messageEl.textContent = 'Sem tentativas restantes!';
-      return;
-    }
-    if (coins < 100) {
-      messageEl.textContent = 'Moedas insuficientes para jogar!';
-      return;
-    }
-    // Custo de 100 moedas por jogada
+    if (attempts <= 0) { messageEl.textContent = 'Sem tentativas!'; return; }
+    if (coins < 100)   { messageEl.textContent = 'Moedas insuficientes!'; return; }
+
+    // Desativa o botão durante o giro
+    lever.disabled = true;
+    lever.classList.add('lever-active');
+    setTimeout(() => lever.classList.remove('lever-active'), 300);
+
     attempts--;
     coins -= 100;
-    attemptsCountEl.textContent = attempts;
-    coinCountEl.textContent = coins;
+    attemptsEl.textContent = attempts;
+    coinEl.textContent = coins;
     messageEl.textContent = '';
 
-    // Sorteia índices finais
-    const results = columns.map(() => Math.floor(Math.random() * figures.length));
+    const results = columns.map(() => Math.floor(Math.random() * icons.length));
     const baseDuration = 2000;
 
-    columns.forEach((col, i) => {
-      const duration = baseDuration + i * 500;
-      animateColumnSequential(col, results[i], duration);
-    });
+    columns.forEach(col => col.classList.remove('winner'));
 
-    // Pós-animation
+    columns.forEach((col, i) => animateColumn(col, results[i], baseDuration + i * 500));
+
     setTimeout(() => {
-      // Conta aparições do número '3'
-      const threeCount = results.filter(i => figures[i] === '3').length;
-      let reward = 0;
-      if (threeCount === 1) reward = 50;
-      if (threeCount === 2) reward = 100;
-      if (threeCount === 3) reward = 150;
+      const hits = results.filter(i => icons[i] === 'diamond').length;
+      const reward = {1:50, 2:100, 3:150}[hits] || 0;
+
       coins += reward;
-      coinCountEl.textContent = coins;
+      coinEl.textContent = coins;
 
       if (reward > 0) {
-        messageEl.textContent = `Você acertou ${threeCount}x '3' e ganhou ${reward} moedas!`;
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      }
+
+      columns.forEach((col, i) => {
+        if (icons[results[i]] === 'diamond') {
+          col.classList.add('winner');
+        }
+      });
+
+      if (reward > 0) {
+        const gain = document.createElement('span');
+        gain.textContent = `+${reward}`;
+        gain.className = 'coin-gain';
+        document.querySelector('.coins').appendChild(gain);
+        setTimeout(() => gain.remove(), 1000);
+      }
+
+      if (hits > 0) {
+        messageEl.textContent = `Você acertou ${hits}x \"diamond\" e ganhou ${reward} moedas!`;
       } else if (results.every(r => r === results[0])) {
-        messageEl.textContent = 'Parabéns! Você ganhou o jackpot!';
+        messageEl.textContent = 'Jackpot! Parabéns!';
       } else {
         messageEl.textContent = 'Tente novamente.';
       }
+
+      // Reativa o botão após o giro
+      lever.disabled = false;
     }, baseDuration + 1000);
   }
 
-  /**
-   * Anima a coluna sequencialmente, passando por cada figura em ordem, desacelerando até o finalIndex.
-   * @param {HTMLElement} column
-   * @param {number} finalIndex
-   * @param {number} duration Tempo total da animação em ms
-   */
-  function animateColumnSequential(column, finalIndex, duration) {
-    const startTime = performance.now();
-    const endTime = startTime + duration;
-    const totalFigures = figures.length;
-    let position = 0;
-    /**
-     * Intervalo mínimo e máximo (ms) para controle de velocidade
-     */
-    const minInterval = 50;    // mais rápido
-    const maxInterval = 300;   // mais lento
+  function animateColumn(column, finalIndex, duration) {
+    const start = performance.now();
+    let pos = 0;
+    const total = icons.length;
 
     function update(now) {
-      // Calcula t de 0 a 1
-      const t = Math.min((now - startTime) / duration, 1);
-      // Intervalo linearmente entre min e max
-      const interval = minInterval + (maxInterval - minInterval) * t;
-
-      // Armazena última vez que atualizou em propriedade privada
+      const t = Math.min((now - start) / duration, 1);
+      const interval = 50 + (300 - 50) * t;
       if (!column._lastUpdate) column._lastUpdate = now;
       if (now - column._lastUpdate >= interval) {
-        position = (position + 1) % totalFigures;
-        column.textContent = figures[position];
+        pos = (pos + 1) % total;
+        column.innerHTML = `<i class="ph ph-${icons[pos]}"></i>`;
         column._lastUpdate = now;
       }
-
-      if (now < endTime) {
+      if (now < start + duration) {
         requestAnimationFrame(update);
       } else {
-        // Garante parada suave no finalIndex
-        column.textContent = figures[finalIndex];
+        column.innerHTML = `<i class="ph ph-${icons[finalIndex]}"></i>`;
         delete column._lastUpdate;
       }
     }
